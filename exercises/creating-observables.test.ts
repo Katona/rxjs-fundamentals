@@ -1,5 +1,5 @@
 import { error } from 'console';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable, of, subscribeOn } from 'rxjs';
 
 describe('Exercise: Creating Observables', () => {
   describe(of, () => {
@@ -112,6 +112,18 @@ describe('Exercise: Creating Observables', () => {
           done();
         },
       });
+    });
+    it('should deal with a bespoke observable (BONUS)', () => {
+      const observable = new Observable<number>((subscriber) => {
+        subscriber.next(1);
+        subscriber.next(2);
+        subscriber.next(3);
+        subscriber.next(4);
+        subscriber.complete();
+      });
+      const result: number[] = [];
+      observable.subscribe((v) => result.push(v));
+      expect(result).toEqual([1, 2, 3, 4]);
     });
   });
 });
