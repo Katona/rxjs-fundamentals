@@ -1,4 +1,5 @@
-import { from, of } from 'rxjs';
+import { error } from 'console';
+import { from, Observable, of } from 'rxjs';
 
 describe('Exercise: Creating Observables', () => {
   describe(of, () => {
@@ -7,15 +8,24 @@ describe('Exercise: Creating Observables', () => {
      * the values into the `results` array, and get the expectation below to
      * pass.
      */
-    it.skip('should create an observable out of a single value', () => {
-      const result = [];
+    it('should create an observable out of a single value', () => {
+      const result: number[] = [];
+      const observable = of(1);
+      observable.subscribe((v) => result.push(v));
 
       expect(result).toEqual([1]);
     });
 
-    it.skip('should take a series of objects as arguments and create an observable', () => {
-      const result = [];
+    it('should take a series of objects as arguments and create an observable', () => {
+      const result: { type: string; payload?: number }[] = [];
 
+      const observable = of(
+        { type: 'INCREMENT', payload: 1 },
+        { type: 'RESET' },
+        { type: 'INCREMENT', payload: 2 },
+        { type: 'DECREMENT', payload: 1 },
+      );
+      observable.subscribe((v) => result.push(v));
       expect(result).toEqual([
         { type: 'INCREMENT', payload: 1 },
         { type: 'RESET' },
@@ -26,8 +36,16 @@ describe('Exercise: Creating Observables', () => {
   });
 
   describe(from, () => {
-    it.skip('should take an array of objects as arguments and create an observable', () => {
-      const result = [];
+    it('should take an array of objects as arguments and create an observable', () => {
+      const result: { type: string; payload?: number }[] = [];
+
+      const observable = from([
+        { type: 'INCREMENT', payload: 1 },
+        { type: 'RESET' },
+        { type: 'INCREMENT', payload: 2 },
+        { type: 'DECREMENT', payload: 1 },
+      ]);
+      observable.subscribe((v) => result.push(v));
 
       expect(result).toEqual([
         { type: 'INCREMENT', payload: 1 },
@@ -37,15 +55,17 @@ describe('Exercise: Creating Observables', () => {
       ]);
     });
 
-    it.skip('should create an observable from a generator', () => {
+    it('should create an observable from a generator', () => {
       function* values() {
         yield 1;
         yield 2;
         yield 3;
         return 4;
       }
+      const observable = from(values());
 
-      const result = [];
+      const result: number[] = [];
+      observable.subscribe((v) => result.push(v));
 
       expect(result).toEqual([1, 2, 3]);
     });
@@ -63,12 +83,18 @@ describe('Exercise: Creating Observables', () => {
      * Your mission: collect the values as their emitted, but then
      * only assert your expectation once the observable has completed.
      */
-    it.skip('should create an observable from a promise', (done) => {
+    it('should create an observable from a promise', (done) => {
       const promise = Promise.resolve(1);
-      const result = [];
+      const result: number[] = [];
 
-      expect(result).toEqual([1]);
-      done();
+      const observable = from(promise);
+      observable.subscribe({
+        next: (v) => result.push(v),
+        complete: () => {
+          expect(result).toEqual([1]);
+          done();
+        },
+      });
     });
 
     /**
@@ -76,11 +102,16 @@ describe('Exercise: Creating Observables', () => {
      * opportunity to see how to respond to an error—in this case, a rejected
      * promise—in our observables.
      */
-    it.skip('should create an observable from a promise that rejects', (done) => {
+    it('should create an observable from a promise that rejects', (done) => {
       const promise = Promise.reject({ error: 'Something terrible happened' });
-
-      expect(error).toEqual({ error: 'Something terrible happened' });
-      done();
+      let error: Error | undefined;
+      const observable = from(promise);
+      observable.subscribe({
+        error: (e) => {
+          expect(e).toEqual({ error: 'Something terrible happened' });
+          done();
+        },
+      });
     });
   });
 });
