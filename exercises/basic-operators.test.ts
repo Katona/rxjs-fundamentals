@@ -45,7 +45,7 @@ describe('Basic Operators', () => {
     ]);
   });
 
-  it.skip('should skip the first 5 values and double last two', async () => {
+  it('should skip the first 5 values and double last two', async () => {
     const observable$ = of(1, 2, 3, 4, 5, 6, 7).pipe(
       skip(5),
       map((x) => x * 2),
@@ -54,31 +54,31 @@ describe('Basic Operators', () => {
     return expect(await getResult(observable$)).toEqual([12, 14]);
   });
 
-  it.skip('should emit the square of every even number in the stream', async () => {
+  it('should emit the square of every even number in the stream', async () => {
     const observable$ = of(1, 2, 3, 4, 5, 6, 7).pipe(
       filter((x) => x % 2 === 0),
-      map((x) => x * 2),
+      map((x) => x * x),
     );
 
     return expect(await getResult(observable$)).toEqual([4, 16, 36]);
   });
 
-  it.skip('should sum of the total of all of the Fibonacci numbers under 200', async () => {
+  it('should sum of the total of all of the Fibonacci numbers under 200', async () => {
     const observable$ = from(fibonacci()).pipe(
       takeWhile((x) => x < 200),
-      reduce((sum, x) => sum * x),
+      reduce((sum, x) => sum + x, 0),
     );
 
     expect(await getResult(observable$)).toEqual([376]);
   });
 
-  it.skip('should merge each object emited into a single object, emitting each state along the way', async () => {
+  it('should merge each object emited into a single object, emitting each state along the way', async () => {
     const observable$ = of(
       { isRunning: true },
       { currentSpeed: 100 },
       { currentSpeed: 200 },
       { distance: 500 },
-    ).pipe();
+    ).pipe(scan((merged, current) => ({ ...merged, ...current }), {}));
 
     expect(await getResult(observable$)).toEqual([
       { isRunning: true },
