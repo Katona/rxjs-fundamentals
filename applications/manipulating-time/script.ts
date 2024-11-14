@@ -8,6 +8,7 @@ import {
   scan,
   map,
   tap,
+  observeOn,
 } from 'rxjs/operators';
 
 import {
@@ -15,10 +16,15 @@ import {
   panicButton,
   addMessageToDOM,
   deepThoughtInput,
-  setTextArea,
   setStatus,
 } from './utilities';
 
-const buttonClicks$ = fromEvent(button, 'click');
+const intervalObservable = interval(2000);
+// const operator = throttle((ev) => intervalObservable);
+const operator = debounce((ev) => intervalObservable);
 
-buttonClicks$.subscribe(addMessageToDOM);
+if (button && panicButton) {
+  const buttonClicks$ = fromEvent(button, 'click').pipe(operator);
+
+  buttonClicks$.subscribe(addMessageToDOM);
+}
