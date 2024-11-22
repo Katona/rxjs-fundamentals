@@ -24,8 +24,7 @@ import {
 } from './utilities';
 
 // const endpoint = 'http://localhost:3333/api/facts';
-const endpoint =
-  'http://localhost:3333/api/facts?delay=3000&chaos=1&flakiness=20';
+const endpoint = 'http://localhost:3333/api/facts?delay=3000&chaos=1';
 
 const fetchData = () => {
   console.log('fetchData');
@@ -47,10 +46,10 @@ if (fetchButton && stopButton) {
   const pauseClick$ = fromEvent(stopButton, 'click').pipe(mapTo(false));
   const factStream$ = merge(fetchClick$, pauseClick$).pipe(
     switchMap((shouldFetch) => {
-      if (shouldFetch) return timer(0, 5000).pipe(map(fetchData));
+      if (shouldFetch) return timer(0, 5000).pipe(exhaustMap(fetchData));
       else return NEVER;
     }),
-    exhaustAll(),
+    // exhaustAll(),
     tap(() => clearError()),
     tap(() => clearFacts()),
   );
