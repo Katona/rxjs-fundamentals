@@ -14,6 +14,7 @@ import {
   concat,
   take,
   EMPTY,
+  pluck,
 } from 'rxjs';
 
 import { fromFetch } from 'rxjs/fetch';
@@ -27,4 +28,20 @@ import {
   form,
 } from '../pokemon/utilities';
 
-const endpoint = 'http://localhost:3333/api/pokemon?delay=100';
+const endpoint = 'http://localhost:3333/api/pokemon/search';
+
+if (search) {
+  const search$ = fromEvent(search, 'input').pipe(
+    debounceTime(300),
+    map((ev) => ev.target.value),
+    distinctUntilChanged(),
+    switchMap((value) =>
+      fromFetch(`${endpoint}/${value}?delay=1000&chaos=true`),
+    ),
+    mergeMap((res) => res.json()),
+    pluck('pokemon'),
+    tap(clearResults),
+    tap(addResults),
+  );
+  search$.subscribe();
+}
