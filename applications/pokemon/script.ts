@@ -35,15 +35,27 @@ import {
 const endpoint = 'http://localhost:3333/api/pokemon/search';
 
 type Pokemon = { name: string; id: string };
+
+const searchPokemon = (query: string) => {
+  return fromFetch(`${endpoint}/${search.value}?delay=1000&chaos=true`).pipe(
+    switchMap((res) => res.json()),
+  );
+};
+
+const getPokemonData = (pokemon: Pokemon) => {
+  const pokemonWithData$ = fromFetch(endpointFor(pokemon.id)).pipe(
+    mergeMap((res) => res.json()),
+    map((json) => ({ ...pokemon, data: json })),
+  );
+  return merge(of(pokemon), pokemonWithData$);
+};
+
 if (search) {
   const search$ = fromEvent(search, 'input').pipe(
     debounceTime(300),
     map((ev) => ev.target.value),
     distinctUntilChanged(),
-    switchMap((value) =>
-      fromFetch(`${endpoint}/${value}?delay=1000&chaos=true`),
-    ),
-    mergeMap((res) => res.json()),
+    switchMap(searchPokemon),
     pluck('pokemon'),
     tap(clearResults),
     tap(addResults),
@@ -51,23 +63,13 @@ if (search) {
   search$.subscribe();
 }
 
-if (submit) {
+if (submit && search) {
   const submit$ = fromEvent(submit, 'click').pipe(
-    mergeMap(() =>
-      fromFetch(`${endpoint}/${search.value}?delay=1000&chaos=true`).pipe(
-        switchMap((res) => res.json()),
-      ),
-    ),
+    mergeMap(() => searchPokemon(search.value)),
     map((json): Pokemon[] => json.pokemon),
     mergeMap(identity),
     take(1),
-    switchMap((pokemon: Pokemon) => {
-      const pokemonWithData$ = fromFetch(endpointFor(pokemon.id)).pipe(
-        mergeMap((res) => res.json()),
-        map((json) => ({ ...pokemon, data: json })),
-      );
-      return merge(of(pokemon), pokemonWithData$);
-    }),
+    switchMap(getPokemonData),
     tap((pokemon) => renderPokemon(pokemon)),
   );
   submit$.subscribe();
